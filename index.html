@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>个人自留地</title>
-    <script src="tailwind.min.js"></script>
-    <script src="iro.min.js"></script>
-    <script src="html2canvas.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         :root { --bg-paper: #fcfaf2; }
         body {
@@ -15,10 +15,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             overflow: hidden; height: 100dvh; display: flex; flex-direction: column;
             position: fixed; width: 100%; transition: background 0.5s ease;
-            /* 阻止移动端长按弹出菜单 */
-            -webkit-touch-callout: none; 
-            -webkit-user-select: none;
-            user-select: none;
+            -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
         }
 
         .danmu-item {
@@ -104,6 +101,33 @@
         /* 刷新确认小窗口样式 */
         #timeRefreshConfirm { position: fixed; inset: 0; z-index: 6000; background: rgba(0,0,0,0.2); display: none; align-items: center; justify-content: center; backdrop-filter: blur(1px); }
         .confirm-box-mini { background: white; border-radius: 16px; padding: 16px; width: 200px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #f1f5f9; text-align: center; }
+
+        /* 修改后的随机样式按钮定位 */
+.style-random-btn { 
+    position: absolute; 
+    right: 10px;    /* 距离右边 */
+    top: 8px;      /* 移到上方，避开下方可能出现的换行提醒或文字 */
+    width: 24px; 
+    height: 24px; 
+    border-radius: 50%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    color: #cbd5e1; 
+    cursor: pointer; 
+    transition: all 0.2s;
+    background: transparent; 
+    z-index: 20;
+}
+        .style-random-btn:hover { background: rgba(0,0,0,0.03); color: #94a3b8; }
+        .style-random-btn:active { transform: translateY(-50%) rotate(180deg); color: #64748b; }
+        
+        /* 输入框过渡 */
+        #noteInput {
+    padding-right: 36px !important; /* 确保右侧留出空间给刷新按钮 */
+    transition: background 0.3s, color 0.3s, border 0.3s; 
+    border-style: solid;
+}
     </style>
 </head>
 <body id="bodyRoot">
@@ -202,11 +226,11 @@
                 </div>
                 <div class="px-2">
                     <div class="flex justify-between mb-3"><span class="text-[11px] font-bold text-slate-600">边框粗细</span><span id="borderValDisplay" class="text-[11px] font-mono text-slate-400">1.5px</span></div>
-                    <input type="range" id="styleBorderSize" min="0" max="5" step="0.5" value="1.5" class="w-full h-1.5 bg-gray-100 rounded-lg appearance-none accent-slate-800" oninput="document.getElementById('borderValDisplay').innerText=this.value+'px'">
+                    <input type="range" id="styleBorderSize" min="0" max="5" step="0.5" value="1.5" class="w-full h-1.5 bg-gray-100 rounded-lg appearance-none accent-slate-800" oninput="updateLabStylePreview()">
                 </div>
                 <div class="flex gap-3 pt-1">
                     <button onclick="resetDanmuStyle()" class="py-3 flex-1 bg-gray-100 text-slate-400 rounded-2xl text-xs font-bold active:scale-95">默认</button>
-                    <button onclick="saveStyleSettings()" class="py-3 flex-1 bg-slate-800 text-white rounded-2xl text-xs font-bold shadow-lg active:scale-95">确定</button>
+                    <button onclick="saveStyleSettings()" class="py-3 flex-1 bg-slate-800 text-white rounded-2xl text-xs font-bold shadow-lg active:scale-95">确定并应用</button>
                 </div>
             </div>
         </div>
@@ -248,7 +272,15 @@
             <div id="dateDisplay" class="font-mono"></div>
         </div>
         <div class="px-4 pb-2 pt-1 flex items-center gap-3">
-            <textarea id="noteInput" rows="1" maxlength="100" placeholder="此刻的心情..." class="flex-1 bg-gray-50 px-3 py-2 rounded-xl border border-gray-100 text-sm resize-none h-10 outline-none"></textarea>
+            <div class="flex-1 relative h-10">
+                <textarea id="noteInput" rows="1" maxlength="100" placeholder="此刻的心情..." class="w-full h-full bg-gray-50 px-3 py-2 pr-9 rounded-xl border border-gray-100 text-sm resize-none outline-none"></textarea>
+                <button onclick="randomizeInputStyle()" class="style-random-btn" title="随机样式">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
+            </div>
+            
             <button id="submitBtn" class="bg-slate-800 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg active:scale-90 shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
             </button>
@@ -270,14 +302,12 @@
         let labTarget = 'text';
         let bgColorPicker, labColorPicker;
         let activeNoteId = null; 
-        let currentActiveTimestamp = null; // 用于临时存储详情窗口的时间戳
+        let currentActiveTimestamp = null;
 
         function showRefreshConfirm() { document.getElementById('timeRefreshConfirm').style.display = 'flex'; }
         function hideRefreshConfirm() { document.getElementById('timeRefreshConfirm').style.display = 'none'; }
-        
         function doRefreshTime() {
-            const now = new Date();
-            currentActiveTimestamp = now.getTime();
+            const now = new Date(); currentActiveTimestamp = now.getTime();
             const dateStr = now.toLocaleDateString().replace(/\//g, '-');
             const timeStr = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12: false});
             document.getElementById('timeRefreshBtn').innerText = `${dateStr} ${timeStr} ✅`;
@@ -315,8 +345,7 @@
                     el.classList.remove('is-dragging');
                     const rect = el.getBoundingClientRect();
                     if (isInvalidPosition(rect.left + rect.width / 2, rect.top + rect.height / 2)) {
-                        const newPos = getRandomPos();
-                        el.style.left = newPos.x + 'px'; el.style.top = newPos.y + 'px';
+                        const newPos = getRandomPos(); el.style.left = newPos.x + 'px'; el.style.top = newPos.y + 'px';
                         note.x = newPos.x; note.y = newPos.y;
                     } else { 
                         if(el.offsetLeft + el.offsetWidth > window.innerWidth - 10) el.style.left = (window.innerWidth - el.offsetWidth - 10) + 'px';
@@ -331,40 +360,16 @@
         }
 
         function showDetailCard(x, y, note) {
-            const card = document.getElementById('detailCard');
-            const editArea = document.getElementById('detailEditArea');
-            const timeBtn = document.getElementById('timeRefreshBtn');
-            activeNoteId = note.id; 
-            currentActiveTimestamp = note.timestamp; 
-
-            const d = new Date(note.timestamp);
-            const dateStr = d.toLocaleDateString().replace(/\//g, '-');
-            const timeStr = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12: false});
-            
-            document.getElementById('detailLoc').innerText = `📍 ${note.addr}`;
-            timeBtn.innerText = `🔄 ${dateStr} ${timeStr}`;
-            
-            editArea.value = note.content;
-            card.style.display = 'block';
-            autoResizeEdit(editArea); 
-            card.style.left = Math.min(Math.max(10, x - 128), window.innerWidth - 270) + 'px';
-            card.style.top = (y < 200 ? y + 20 : y - 180) + 'px';
+            const card = document.getElementById('detailCard'); const editArea = document.getElementById('detailEditArea'); const timeBtn = document.getElementById('timeRefreshBtn');
+            activeNoteId = note.id; currentActiveTimestamp = note.timestamp; 
+            const d = new Date(note.timestamp); const dateStr = d.toLocaleDateString().replace(/\//g, '-'); const timeStr = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12: false});
+            document.getElementById('detailLoc').innerText = `📍 ${note.addr}`; timeBtn.innerText = `🔄 ${dateStr} ${timeStr}`;
+            editArea.value = note.content; card.style.display = 'block'; autoResizeEdit(editArea); 
+            card.style.left = Math.min(Math.max(10, x - 128), window.innerWidth - 270) + 'px'; card.style.top = (y < 200 ? y + 20 : y - 180) + 'px';
         }
 
         function autoResizeEdit(el) { el.style.height = 'auto'; el.style.height = (el.scrollHeight) + 'px'; }
-        
-        function closeAndSaveDetail() {
-            if (activeNoteId) {
-                const newContent = document.getElementById('detailEditArea').value.trim();
-                const note = notes.find(n => n.id === activeNoteId);
-                if (note) {
-                    note.content = newContent;
-                    note.timestamp = currentActiveTimestamp; 
-                    saveAndRender(); 
-                }
-            }
-            document.getElementById('detailCard').style.display = 'none'; activeNoteId = null;
-        }
+        function closeAndSaveDetail() { if (activeNoteId) { const newContent = document.getElementById('detailEditArea').value.trim(); const note = notes.find(n => n.id === activeNoteId); if (note) { note.content = newContent; note.timestamp = currentActiveTimestamp; saveAndRender(); } } document.getElementById('detailCard').style.display = 'none'; activeNoteId = null; }
 
         function render() {
             const kwd = document.getElementById('searchInput').value.trim();
@@ -376,21 +381,17 @@
             if(viewMode === 'wall') {
                 wall.classList.remove('hidden'); timeline.classList.add('hidden'); pSel.classList.add('hidden');
                 filtered.forEach(note => {
-                    const el = document.createElement('div');
-                    const s = note.style || { text: '#334155', bg: '#ffffff', border: 1.5 };
+                    const el = document.createElement('div'); const s = note.style || { text: '#334155', bg: '#ffffff', border: 1.5 };
                     el.className = `danmu-item px-4 py-2 border rounded-2xl text-xs font-medium`;
                     el.style.backgroundColor = s.bg; el.style.color = s.text; el.style.borderWidth = s.border + 'px'; el.style.borderColor = s.text;
-                    el.style.left = (note.x || 50) + 'px'; el.style.top = (note.y || 150) + 'px';
-                    el.innerText = note.content;
-                    bindInteraction(el, note);
-                    wall.appendChild(el);
+                    el.style.left = (note.x || 50) + 'px'; el.style.top = (note.y || 150) + 'px'; el.innerText = note.content;
+                    bindInteraction(el, note); wall.appendChild(el);
                 });
                 addArchiveBox(notes.filter(n => n.isArchived).length);
             } else {
                 wall.classList.add('hidden'); timeline.classList.remove('hidden'); pSel.classList.remove('hidden');
                 const container = document.createElement('div'); container.className = `timeline-container line-${linePos}`; 
-                const line = document.createElement('div'); line.className = 'timeline-line'; 
-                container.appendChild(line);
+                const line = document.createElement('div'); line.className = 'timeline-line'; container.appendChild(line);
                 let lastDate = ""; let itemIndex = 0; 
                 filtered.sort((a,b) => b.timestamp - a.timestamp).forEach((note) => { 
                     const d = new Date(note.timestamp); const dateStr = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`; 
@@ -409,9 +410,17 @@
 
         function saveToLocal() { localStorage.setItem('fave_notes_v12', JSON.stringify(notes)); }
         function saveAndRender() { saveToLocal(); render(); }
+        
         function handleSend() { 
-            const input = document.getElementById('noteInput'), content = input.value.trim(); const loc = document.getElementById('locInput').value.trim() || "此刻的心里"; if(!content) return; const pos = getRandomPos(); notes.unshift({ id: 'n_' + Date.now(), content, timestamp: Date.now(), addr: loc, isArchived: false, style: JSON.parse(JSON.stringify(currentLaboratoryStyle)), x: pos.x, y: pos.y }); saveAndRender(); input.value = ''; document.getElementById('templateContainer').style.display = 'none';
+            const input = document.getElementById('noteInput'), content = input.value.trim(); const loc = document.getElementById('locInput').value.trim() || "此刻的心里"; if(!content) return; 
+            const pos = getRandomPos(); notes.unshift({ id: 'n_' + Date.now(), content, timestamp: Date.now(), addr: loc, isArchived: false, style: {...currentLaboratoryStyle}, x: pos.x, y: pos.y }); 
+            saveAndRender(); input.value = ''; resetInputStyle(); document.getElementById('templateContainer').style.display = 'none';
         }
+
+        function resetInputStyle() {
+            const input = document.getElementById('noteInput'); input.style.background = ""; input.style.color = ""; input.style.border = "";
+        }
+        
         function toggleView() { viewMode = viewMode === 'wall' ? 'timeline' : 'wall'; document.getElementById('viewToggle').innerText = viewMode === 'wall' ? '轴' : '墙'; render(); }
         function setLinePos(pos) { linePos = pos; document.querySelectorAll('.pos-btn').forEach(btn => btn.classList.remove('active')); document.getElementById(`btnPos${pos.charAt(0).toUpperCase() + pos.slice(1)}`).classList.add('active'); render(); }
         function showDetailCardFromTimeline(e, id) { const note = notes.find(n => n.id === id); if(note) showDetailCard(e.clientX, e.clientY, note); }
@@ -431,22 +440,83 @@
         function resetBg() { applyBgStyle('#fcfaf2'); localStorage.removeItem('fave_bg_v12'); closeBgSettings(); }
         function closeBgSettings() { document.getElementById('bgSettingsModal').classList.add('hidden'); }
         function applyBgStyle(val) { const body = document.getElementById('bodyRoot'); if (val.startsWith('http')) { body.style.backgroundImage = `url('${val}')`; body.style.backgroundColor = 'transparent'; } else { body.style.backgroundImage = 'none'; body.style.backgroundColor = val; } }
-        function initLabUI() { const s = currentLaboratoryStyle; document.getElementById('textPreview').style.backgroundColor = s.text; document.getElementById('danmuBgPreview').style.backgroundColor = s.bg; document.getElementById('styleBorderSize').value = s.border; document.getElementById('borderValDisplay').innerText = s.border + 'px'; }
-        function saveStyleSettings() { currentLaboratoryStyle = { text: document.getElementById('textPreview').style.backgroundColor, bg: document.getElementById('danmuBgPreview').style.backgroundColor, border: parseFloat(document.getElementById('styleBorderSize').value) }; localStorage.setItem('fave_lab_style_v12', JSON.stringify(currentLaboratoryStyle)); closeDanmuStyle(); render(); }
-        function resetDanmuStyle() { currentLaboratoryStyle = { text: '#334155', bg: '#ffffff', border: 1.5 }; initLabUI(); saveStyleSettings(); }
-        function closeDanmuStyle() { document.getElementById('danmuStyleModal').classList.add('hidden'); }
-        function switchLabTarget(target) { labTarget = target; document.getElementById('textPreviewItem').classList.toggle('active', target === 'text'); document.getElementById('bgPreviewItem').classList.toggle('active', target === 'bg'); labColorPicker.setColor(target === 'text' ? document.getElementById('textPreview').style.backgroundColor : document.getElementById('danmuBgPreview').style.backgroundColor); }
-        function initPickers() { bgColorPicker = new iro.ColorPicker("#bgPicker", { width: 180, color: localStorage.getItem('fave_bg_v12') || "#fcfaf2" }); bgColorPicker.on('color:change', (color) => { document.getElementById('bgInput').value = color.hexString; applyBgStyle(color.hexString); }); labColorPicker = new iro.ColorPicker("#labPicker", { width: 180, color: currentLaboratoryStyle.text }); labColorPicker.on('color:change', (color) => { if(labTarget === 'text') document.getElementById('textPreview').style.backgroundColor = color.hexString; else document.getElementById('danmuBgPreview').style.backgroundColor = color.hexString; }); }
 
-        const main = document.getElementById('mainDisplay');
-        let bgTimer;
+        // --- 核心改动：样式同步逻辑 ---
+        function applyStyleToInput(s) {
+            const input = document.getElementById('noteInput');
+            input.style.backgroundColor = s.bg;
+            input.style.color = s.text;
+            input.style.borderColor = s.text;
+            input.style.borderWidth = s.border + 'px';
+        }
+
+        function randomizeInputStyle() {
+            const h = Math.floor(Math.random() * 360);
+            const bgColor = `hsl(${h}, ${50 + Math.random() * 40}%, ${92 + Math.random() * 5}%)`;
+            const textColor = `hsl(${h}, ${60 + Math.random() * 30}%, ${30 + Math.random() * 20}%)`;
+            const borderSize = (1 + Math.random() * 2.5).toFixed(1);
+
+            currentLaboratoryStyle = { text: textColor, bg: bgColor, border: parseFloat(borderSize) };
+            applyStyleToInput(currentLaboratoryStyle);
+            initLabUI();
+            if(labColorPicker) labColorPicker.color.set(labTarget === 'text' ? textColor : bgColor);
+        }
+
+        function updateLabStylePreview() {
+            const s = currentLaboratoryStyle;
+            s.text = document.getElementById('textPreview').style.backgroundColor;
+            s.bg = document.getElementById('danmuBgPreview').style.backgroundColor;
+            s.border = parseFloat(document.getElementById('styleBorderSize').value);
+            document.getElementById('borderValDisplay').innerText = s.border + 'px';
+            applyStyleToInput(s); // 在实验室调节时实时应用到文本框
+        }
+
+        function initLabUI() { 
+            const s = currentLaboratoryStyle; 
+            document.getElementById('textPreview').style.backgroundColor = s.text; 
+            document.getElementById('danmuBgPreview').style.backgroundColor = s.bg; 
+            document.getElementById('styleBorderSize').value = s.border; 
+            document.getElementById('borderValDisplay').innerText = s.border + 'px'; 
+        }
+
+        function saveStyleSettings() { 
+            localStorage.setItem('fave_lab_style_v12', JSON.stringify(currentLaboratoryStyle)); 
+            closeDanmuStyle(); render(); 
+        }
+
+        function resetDanmuStyle() { 
+            currentLaboratoryStyle = { text: '#334155', bg: '#ffffff', border: 1.5 }; 
+            initLabUI(); applyStyleToInput(currentLaboratoryStyle); saveStyleSettings(); 
+        }
+
+        function closeDanmuStyle() { document.getElementById('danmuStyleModal').classList.add('hidden'); }
+        function switchLabTarget(target) { 
+            labTarget = target; 
+            document.getElementById('textPreviewItem').classList.toggle('active', target === 'text'); 
+            document.getElementById('bgPreviewItem').classList.toggle('active', target === 'bg'); 
+            labColorPicker.color.set(target === 'text' ? currentLaboratoryStyle.text : currentLaboratoryStyle.bg);
+        }
+
+        function initPickers() { 
+            bgColorPicker = new iro.ColorPicker("#bgPicker", { width: 180, color: localStorage.getItem('fave_bg_v12') || "#fcfaf2" }); 
+            bgColorPicker.on('color:change', (color) => { document.getElementById('bgInput').value = color.hexString; applyBgStyle(color.hexString); }); 
+            labColorPicker = new iro.ColorPicker("#labPicker", { width: 180, color: currentLaboratoryStyle.text }); 
+            labColorPicker.on('color:change', (color) => { 
+                if(labTarget === 'text') {
+                    document.getElementById('textPreview').style.backgroundColor = color.hexString;
+                    currentLaboratoryStyle.text = color.hexString;
+                } else {
+                    document.getElementById('danmuBgPreview').style.backgroundColor = color.hexString;
+                    currentLaboratoryStyle.bg = color.hexString;
+                }
+                updateLabStylePreview(); // 颜色变化时同步预览
+            }); 
+        }
+
+        const main = document.getElementById('mainDisplay'); let bgTimer;
         const handleBgStart = (e) => { 
-            const isItem = e.target.closest('.danmu-item, .timeline-bubble, .archive-item-box, .pos-selector, .modal-container, .archive-list-item, #detailCard, .template-tag, #timeRefreshConfirm, #timeRefreshBtn'); 
-            if(!isItem) { 
-                bgTimer = setTimeout(() => document.getElementById('bgSettingsModal').classList.remove('hidden'), 800); 
-                closeAndSaveDetail(); 
-                document.getElementById('templateContainer').style.display = 'none';
-            } 
+            const isItem = e.target.closest('.danmu-item, .timeline-bubble, .archive-item-box, .pos-selector, .modal-container, .archive-list-item, #detailCard, .template-tag, #timeRefreshConfirm, .style-random-btn'); 
+            if(!isItem) { bgTimer = setTimeout(() => document.getElementById('bgSettingsModal').classList.remove('hidden'), 800); closeAndSaveDetail(); document.getElementById('templateContainer').style.display = 'none'; } 
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -459,14 +529,10 @@
             nInput.onfocus = () => { tContainer.style.display = 'flex'; };
             nInput.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
             dEdit.oninput = (e) => autoResizeEdit(e.target); 
-            
-            // 拦截右键/长按弹出菜单
-            main.oncontextmenu = (e) => e.preventDefault();
-            main.onmousedown = handleBgStart; main.ontouchstart = handleBgStart;
+            main.oncontextmenu = (e) => e.preventDefault(); main.onmousedown = handleBgStart; main.ontouchstart = handleBgStart;
             main.onmouseup = () => clearTimeout(bgTimer); main.ontouchend = () => clearTimeout(bgTimer);
-            
             let btnTimer;
-            const startLab = () => btnTimer = setTimeout(() => document.getElementById('danmuStyleModal').classList.remove('hidden'), 800);
+            const startLab = () => btnTimer = setTimeout(() => { document.getElementById('danmuStyleModal').classList.remove('hidden'); initLabUI(); }, 800);
             sBtn.onmousedown = startLab; sBtn.ontouchstart = startLab;
             sBtn.onmouseup = () => clearTimeout(btnTimer); sBtn.ontouchend = () => clearTimeout(btnTimer);
         });
