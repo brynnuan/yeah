@@ -98,7 +98,7 @@
         .lab-color-item.active { border-color: #334155; transform: scale(1.1); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        #templateContainer { display: none; padding: 8px 16px 0; gap: 8px; overflow-x: auto; white-space: nowrap; }
+        #templateContainer { display: none; padding: 8px 16px 12px; gap: 8px; overflow-x: auto; white-space: nowrap; }
         .template-tag { display: inline-block; padding: 4px 12px; background: #fff; border: 1px solid #e2e2f0; border-radius: 12px; font-size: 11px; color: #64748b; cursor: pointer; transition: all 0.2s; }
         .template-tag:active { transform: scale(0.95); background: #f8fafc; }
 
@@ -249,7 +249,7 @@
         </div>
     </div>
 
-    <footer id="footerBar" class="footer-area shadow-2xl">
+    <footer id="footerBar" class="footer-area shadow-2xl flex flex-col gap-1">
         <div id="questionArea" class="px-5 pt-3 pb-1 flex items-center justify-between group">
             <div class="flex items-center gap-2 overflow-hidden flex-1">
                 <span class="text-[10px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded shadow-sm shrink-0 font-bold">每日一问</span>
@@ -269,7 +269,7 @@
             <div class="template-tag style-random-tag" onclick="randomizeInputStyle()">🔄 随机样式</div>
         </div>
         
-        <div class="flex items-center justify-between px-4 py-1 text-[10px] text-gray-400">
+        <div class="flex items-center justify-between px-4 pt-2 pb-3 text-[10px] text-gray-400">
             <div class="flex items-center gap-1 flex-1 overflow-hidden mr-4">
                 <span class="shrink-0">📍</span> 
                 <input type="text" id="locInput" value="某时某地的我" class="bg-transparent border-none outline-none font-bold text-slate-500 flex-1 min-w-0">
@@ -638,7 +638,7 @@
             qContainer.onclick = () => {
                 const question = document.getElementById('randomQuestion').innerText;
                 if(question && question !== "加载提问中...") {
-                    locInput.value = `Q：${question}`;
+                    locInput.value = `Q/${question}`;
                 }
             };
 
