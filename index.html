@@ -123,7 +123,7 @@
 
     <header id="headerBar" class="p-3 glass-panel border-b flex flex-col gap-2 shrink-0">
         <div class="flex items-center gap-2 flex-nowrap w-full">
-            <input type="text" id="searchInput" placeholder="搜索内容、地点或问题..." class="min-w-0 flex-1 px-4 py-2.5 rounded-full border border-gray-200 text-sm outline-none bg-white/50 focus:bg-white transition-all">
+            <input type="text" id="searchInput" placeholder="搜索内容、问题..." class="min-w-0 flex-1 px-4 py-2.5 rounded-full border border-gray-200 text-sm outline-none bg-white/50 focus:bg-white transition-all">
             <button id="viewToggle" class="bg-white border border-gray-100 rounded-full font-bold active:scale-90 shadow-sm flex items-center justify-center text-slate-700">轴</button>
         </div>
         <div id="searchStats" class="px-2 flex items-center justify-between text-[10px] text-gray-400 font-medium">
@@ -288,41 +288,40 @@
     </footer>
 
     <script>
-        const questionData = [
-            "今年最让你感到自豪的一个瞬间是什么？", "如果现在可以去任何地方，你想去哪？",
-            "最近一次让你开怀大笑的事情是什么？", "你最近学到的一个新技能或者冷知识是？",
-            "此时此刻，你周围最吸引你的声音是什么？", "你对明天的自己有什么期待？",
-            "形容一下你现在的咖啡/茶/水的味道？", "最近有没有哪一首歌一直在你脑海里回响？",
-            "你上一次感到彻底放松是什么时候？", "如果今天能重来，你会改变哪个细节？",
-            "你书架上最近的一本书讲了什么？", "今天出门看到的第一个让你觉得美的东西是什么？",
-            "如果你的心情是一种天气，现在是什么天？", "此时此刻你的脚下踩着什么感觉？",
-            "最近一次感到心脏加速跳动是因为什么？", "你手机相册里倒数第五张照片拍的是什么？",
-            "有什么事情是你以前觉得枯燥，现在却很喜欢的？", "你会给五年后的自己写一句什么话？",
-            "今天你对自己最满意的一个微小举动是什么？", "如果你可以拥有一种超能力，你会选什么？",
-            "你现在闻到的空气是什么味道的？", "谁是你最近最想感谢的人？",
-            "如果要把当下的心情画成一幅画，颜色是什么？", "最近的一个梦里出现了谁？",
-            "你最喜欢的季节里，最标志性的画面是什么？", "此时此刻，你最想吃的一样东西是什么？",
-            "你最近有发现什么好玩的路边小店吗？", "有什么事情是你最近一直在坚持的？",
-            "如果把今天定义为一个词，你会用哪个？", "最近一次你对某人感到由衷敬佩是什么时候？",
-            "你房间里最让你感到安心的角落在哪里？", "你上次看日落是什么时候？",
-            "如果你现在要录一段声音存给未来，你会说什么？", "今天发生的哪件事让你觉得世界还不错？",
-            "有什么一直想做但还没开始做的小事吗？", "形容一下你现在的坐姿？",
-            "你最喜欢的衣物穿在身上是什么触感？", "今天有哪个瞬间让你觉得时间慢下来了？",
-            "如果你是一个季节，你觉得自己最像哪个？", "最近有没有让你觉得温暖的一个善意举动？",
-            "你觉得当下的生活状态，像哪首曲子？", "你上一次写字（手写）是什么时候？",
-            "今天你和谁进行了最有意义的交谈？", "有什么是你觉得生活里必不可少的小确幸？",
-            "如果你现在去流浪，只能带三样东西会带什么？", "你最近有遇到什么让你思考很久的问题吗？",
-            "如果现在是电影结尾，背景音乐应该响哪首？", "此刻你最想对谁说一声晚安或早安？"
-        ];
-
-        // 随机不重复逻辑
+        // --- 随机问题调取逻辑修改开始 ---
+        let questionData = []; // 初始设为空
         let shuffledQuestions = [];
+
+        async function fetchQuestions() {
+            try {
+                const response = await fetch('question.json');
+                if (!response.ok) throw new Error('Network response was not ok');
+                questionData = await response.json();
+                refreshQuestion(); // 获取成功后刷新一次界面显示
+            } catch (error) {
+                console.error('无法加载 question.json，将使用备用问题:', error);
+                questionData = ["今天心情如何？", "有什么想记录的吗？"];
+                refreshQuestion();
+            }
+        }
+
         function getNextQuestion() {
             if (shuffledQuestions.length === 0) {
+                if (questionData.length === 0) return "加载提问中...";
                 shuffledQuestions = [...questionData].sort(() => Math.random() - 0.5);
             }
             return shuffledQuestions.pop();
         }
+
+        function refreshQuestion() {
+            const qEl = document.getElementById('randomQuestion');
+            qEl.style.opacity = 0; 
+            setTimeout(() => {
+                qEl.innerText = getNextQuestion();
+                qEl.style.opacity = 1;
+            }, 300);
+        }
+        // --- 随机问题调取逻辑修改结束 ---
 
         const defaultNotes = [
             { id: 'def_1', content: '欢迎来到你的个人自留地 ⛱️', timestamp: Date.now(), addr: '光阴深处', isArchived: false, style: { text: '#ffffff', bg: '#1e293b', border: 2 }, x: 30, y: 100 },
@@ -340,15 +339,6 @@
         let activeNoteId = null; 
         let currentActiveTimestamp = null;
         let isCurrentlyRandom = false; 
-
-        function refreshQuestion() {
-            const qEl = document.getElementById('randomQuestion');
-            qEl.style.opacity = 0; 
-            setTimeout(() => {
-                qEl.innerText = getNextQuestion();
-                qEl.style.opacity = 1;
-            }, 300);
-        }
 
         function showRefreshConfirm() { document.getElementById('timeRefreshConfirm').style.display = 'flex'; }
         function hideRefreshConfirm() { document.getElementById('timeRefreshConfirm').style.display = 'none'; }
@@ -619,7 +609,7 @@
         const handleBgStart = (e) => { 
             const isItem = e.target.closest('.danmu-item, .timeline-bubble, .archive-item-box, .pos-selector, .modal-container, .archive-list-item, #detailCard, .template-tag, #timeRefreshConfirm, #questionArea'); 
             if(!isItem) { 
-                bgTimer = setTimeout(() => document.getElementById('bgSettingsModal').classList.remove('hidden'), 800); 
+                bgTimer = setTimeout(() => document.getElementById('bgSettingsModal').classList.remove('hidden'), 2000); 
                 closeAndSaveDetail(); 
                 document.getElementById('templateContainer').style.display = 'none'; 
                 document.getElementById('questionArea').style.display = 'none'; 
@@ -628,7 +618,9 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             initPickers(); initLabUI(); initBg(); render(); updateDateDisplay();
-            refreshQuestion(); 
+            
+            // 初始化问题调取
+            fetchQuestions(); 
 
             const sBtn = document.getElementById('submitBtn'), nInput = document.getElementById('noteInput'), dEdit = document.getElementById('detailEditArea');
             const tContainer = document.getElementById('templateContainer');
@@ -656,7 +648,7 @@
             main.oncontextmenu = (e) => e.preventDefault(); main.onmousedown = handleBgStart; main.ontouchstart = handleBgStart;
             main.onmouseup = () => clearTimeout(bgTimer); main.ontouchend = () => clearTimeout(bgTimer);
             let btnTimer;
-            const startLab = () => btnTimer = setTimeout(() => { document.getElementById('danmuStyleModal').classList.remove('hidden'); initLabUI(); }, 800);
+            const startLab = () => btnTimer = setTimeout(() => { document.getElementById('danmuStyleModal').classList.remove('hidden'); initLabUI(); }, 1000);
             sBtn.onmousedown = startLab; sBtn.ontouchstart = startLab;
             sBtn.onmouseup = () => clearTimeout(btnTimer); sBtn.ontouchend = () => clearTimeout(btnTimer);
         });
