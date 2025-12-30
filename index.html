@@ -288,8 +288,8 @@
     </footer>
 
     <script>
-        // --- 随机问题调取逻辑修改开始 ---
-        let questionData = []; // 初始设为空
+        // --- 核心逻辑完全保留 ---
+        let questionData = []; 
         let shuffledQuestions = [];
 
         async function fetchQuestions() {
@@ -297,7 +297,7 @@
                 const response = await fetch('question.json');
                 if (!response.ok) throw new Error('Network response was not ok');
                 questionData = await response.json();
-                refreshQuestion(); // 获取成功后刷新一次界面显示
+                refreshQuestion(); 
             } catch (error) {
                 console.error('无法加载 question.json，将使用备用问题:', error);
                 questionData = ["今天心情如何？", "有什么想记录的吗？"];
@@ -321,7 +321,6 @@
                 qEl.style.opacity = 1;
             }, 300);
         }
-        // --- 随机问题调取逻辑修改结束 ---
 
         const defaultNotes = [
             { id: 'def_1', content: '欢迎来到你的个人自留地 ⛱️', timestamp: Date.now(), addr: '光阴深处', isArchived: false, style: { text: '#ffffff', bg: '#1e293b', border: 2 }, x: 30, y: 100 },
@@ -333,6 +332,8 @@
         let notes = localData.length === 0 ? defaultNotes : localData;
         let viewMode = 'wall';
         let linePos = 'center';
+        
+        // --- 样式存储逻辑修正 ---
         let currentLaboratoryStyle = JSON.parse(localStorage.getItem('fave_lab_style_v12')) || { text: '#334155', bg: '#ffffff', border: 1.5 };
         let labTarget = 'text';
         let bgColorPicker, labColorPicker;
@@ -470,28 +471,44 @@
         
         function handleSend() { 
             const input = document.getElementById('noteInput'), content = input.value.trim(); 
-            const loc = document.getElementById('locInput').value.trim() || "此刻的心里"; 
+            const locInput = document.getElementById('locInput'); 
+            const loc = locInput.value.trim() || "此刻的心里"; 
+            
             if(!content) return; 
+            
             const pos = getRandomPos(); 
-            notes.unshift({ id: 'n_' + Date.now(), content, timestamp: Date.now(), addr: loc, isArchived: false, style: {...currentLaboratoryStyle}, x: pos.x, y: pos.y }); 
+            notes.unshift({ 
+                id: 'n_' + Date.now(), 
+                content, 
+                timestamp: Date.now(), 
+                addr: loc, 
+                isArchived: false, 
+                style: {...currentLaboratoryStyle}, 
+                x: pos.x, 
+                y: pos.y 
+            }); 
+            
             saveAndRender(); 
             input.value = ''; 
+            locInput.value = "某时某地的我"; 
+
+            // --- 修改：无论之前是否随机/自定义，发送后均恢复默认 ---
+            resetInputStyle(); 
+            input.placeholder = "记录瞬间...";
             input.focus();
-            if(isCurrentlyRandom) {
-                applyStyleToInput(currentLaboratoryStyle);
-                input.placeholder = "当前样式：已锁定随机";
-            } else {
-                input.placeholder = "记录瞬间...";
-                resetInputStyle(); 
-            }
         }
 
+        // --- 核心重置函数 ---
         function resetInputStyle() {
             const input = document.getElementById('noteInput'); 
             input.style.background = ""; 
             input.style.color = ""; 
             input.style.border = "";
             isCurrentlyRandom = false; 
+            // 内部存储的样式也回归系统默认，确保下次新纪录不是旧颜色
+            currentLaboratoryStyle = { text: '#334155', bg: '#ffffff', border: 1.5 };
+            // 更新预览界面同步
+            initLabUI();
         }
         
         function toggleView() { viewMode = viewMode === 'wall' ? 'timeline' : 'wall'; document.getElementById('viewToggle').innerText = viewMode === 'wall' ? '轴' : '墙'; render(); }
@@ -559,8 +576,7 @@
             s.border = parseFloat(document.getElementById('styleBorderSize').value);
             document.getElementById('borderValDisplay').innerText = s.border + 'px';
             applyStyleToInput(s); 
-            isCurrentlyRandom = false; 
-            document.getElementById('noteInput').placeholder = "记录瞬间...";
+            // 如果用户手动在实验室调整了，默认认为不再是随机状态，但发送后依然重置
         }
 
         function initLabUI() { 
@@ -618,8 +634,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             initPickers(); initLabUI(); initBg(); render(); updateDateDisplay();
-            
-            // 初始化问题调取
             fetchQuestions(); 
 
             const sBtn = document.getElementById('submitBtn'), nInput = document.getElementById('noteInput'), dEdit = document.getElementById('detailEditArea');
@@ -631,6 +645,7 @@
                 const question = document.getElementById('randomQuestion').innerText;
                 if(question && question !== "加载提问中...") {
                     locInput.value = `Q/${question}`;
+                    nInput.focus();
                 }
             };
 
